@@ -52,8 +52,16 @@ const startWebServer =
 			"/",
 			function ( req, res )
 			{
+				res.type( 'application/json' );
+
 				const uptime = new Date().getTime() - startupTime;
-				res.send( "soap.json.gateway running " + uptime + "ms" );
+				res.send(
+					{
+						"app": "soap.json.gateway",
+						"uptime": uptime,
+						"started": startupTime
+					}
+				);
 			}
 		);
 
@@ -67,7 +75,7 @@ const startWebServer =
 					req.params.iata,
 					function ( data )
 					{
-						res.send( JSON.stringify( data ) );
+						res.send( data );
 					}
 				);
 			}
