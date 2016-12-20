@@ -21,6 +21,20 @@ const createClients =
 				}
 			};
 
+		const callAndConvert =
+			function ( client, method, args, resultAttribute, fn )
+			{
+				client[ method ](
+					args,
+					function ( err, result )
+					{
+						if ( err ) throw err;
+						const data = convertXmlToJsObject( result[ resultAttribute ] );
+						fn( data );
+					}
+				)
+			};
+
 		const createAirportClient =
 			function ()
 			{
@@ -36,16 +50,7 @@ const createClients =
 							function ( airportCode, fn )
 							{
 								const args = { "airportCode": airportCode };
-
-								client.getAirportInformationByAirportCode(
-									args,
-									function ( err, result )
-									{
-										if ( err ) throw err;
-										const data = convertXmlToJsObject( result.getAirportInformationByAirportCodeResult );
-										fn( data );
-									}
-								);
+								callAndConvert( client, "getAirportInformationByAirportCode", args, "getAirportInformationByAirportCodeResult", fn );
 							};
 
 						console.log( "airport soap client created" );
@@ -75,16 +80,7 @@ const createClients =
 							function ( countryName, fn )
 							{
 								const args = { "CountryName": countryName };
-
-								client.GetCurrencyByCountry(
-									args,
-									function ( err, result )
-									{
-										if ( err ) throw err;
-										const data = convertXmlToJsObject( result.GetCurrencyByCountryResult );
-										fn( data );
-									}
-								);
+								callAndConvert( client, "GetCurrencyByCountry", args, "GetCurrencyByCountryResult", fn );
 							};
 
 						console.log( "currency soap client created" );
