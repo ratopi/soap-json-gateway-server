@@ -99,6 +99,8 @@ const createClients =
 				);
 			};
 
+		console.log( "creating clients ..." );
+
 		createAirportClient();
 		createCountryClient();
 	};
@@ -115,10 +117,8 @@ const startWebServer =
 			"/",
 			function ( req, res )
 			{
-				res.type( 'application/json' );
-
 				const uptime = new Date().getTime() - startupTime;
-				res.send(
+				res.json(
 					{
 						"app": "soap.json.gateway",
 						"uptime": uptime,
@@ -132,13 +132,11 @@ const startWebServer =
 			"/airport/information/:iata",
 			function ( req, res )
 			{
-				res.type( 'application/json' );
-
 				soapClient.airport.getAirportInformation(
 					req.params.iata,
 					function ( data )
 					{
-						res.send( data );
+						res.json( data );
 					}
 				);
 			}
@@ -148,8 +146,6 @@ const startWebServer =
 			"/airport/currency/:iata",
 			function ( req, res )
 			{
-				res.type( 'application/json' );
-
 				soapClient.airport.getAirportInformation(
 					req.params.iata,
 					function ( airportData )
@@ -165,7 +161,7 @@ const startWebServer =
 							function ( currencyData )
 							{
 								data.currency = currencyData;
-								res.send( data );
+								res.json( data );
 							}
 						);
 					}
