@@ -1,0 +1,10 @@
+{
+  "name": "soap.json.gateway",
+  "version": "0.0.1",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0",
+    "soap": "^0.18.0",
+    "xml2json": "^0.10.0"
+  }
+}
