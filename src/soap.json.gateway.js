@@ -1,43 +1,106 @@
-const createSoapClient =
+const createClients =
 	function ( fn )
 	{
 		const xml2json = require( "xml2json" );
-
 		const soap = require( "soap" );
 
-		const wsdl = "http://www.webservicex.net/airport.asmx?WSDL";
+		const interf = {};
 
-		soap.createClient(
-			wsdl,
-			function ( err, client )
+		const convertXmlToJsObject =
+			function ( xml )
 			{
-				if ( err ) throw err;
+				return JSON.parse( xml2json.toJson( xml ) );
+			};
 
-				const getAirportInformation =
-					function ( airportCode, fn )
+		const checkIfInterfaceComplete =
+			function ()
+			{
+				if ( interf.airport && interf.country )
+				{
+					fn( interf );
+				}
+			};
+
+		const createAirportClient =
+			function ()
+			{
+				const wsdl = "http://www.webservicex.net/airport.asmx?WSDL";
+
+				soap.createClient(
+					wsdl,
+					function ( err, client )
 					{
-						const args = { "airportCode": airportCode };
+						if ( err ) throw err;
 
-						client.getAirportInformationByAirportCode(
-							args,
-							function ( err, result )
+						const getAirportInformation =
+							function ( airportCode, fn )
 							{
-								const data = JSON.parse( xml2json.toJson( result.getAirportInformationByAirportCodeResult ) );
-								fn( data );
-							}
-						);
-					};
+								const args = { "airportCode": airportCode };
 
-				console.log( "soap client created" );
+								client.getAirportInformationByAirportCode(
+									args,
+									function ( err, result )
+									{
+										if ( err ) throw err;
+										const data = convertXmlToJsObject( result.getAirportInformationByAirportCodeResult );
+										fn( data );
+									}
+								);
+							};
 
-				fn(
-					{
-						"getAirportInformation": getAirportInformation
+						console.log( "airport soap client created" );
+
+						interf.airport =
+						{
+							"getAirportInformation": getAirportInformation
+						};
+
+						checkIfInterfaceComplete();
 					}
 				);
+			};
 
-			}
-		);
+		const createCountryClient =
+			function ()
+			{
+				const wsdl = "http://www.webservicex.net/country.asmx?WSDL";
+
+				soap.createClient(
+					wsdl,
+					function ( err, client )
+					{
+						if ( err ) throw err;
+
+						const getCurrencyByCountry =
+							function ( countryName, fn )
+							{
+								const args = { "CountryName": countryName };
+
+								client.GetCurrencyByCountry(
+									args,
+									function ( err, result )
+									{
+										if ( err ) throw err;
+										const data = convertXmlToJsObject( result.GetCurrencyByCountryResult );
+										fn( data );
+									}
+								);
+							};
+
+						console.log( "currency soap client created" );
+
+						interf.country =
+						{
+							"getCurrencyByCountry": getCurrencyByCountry
+						};
+
+						checkIfInterfaceComplete();
+					}
+				);
+			};
+
+		createAirportClient();
+		createCountryClient();
 	};
 
 
@@ -71,11 +134,40 @@ const startWebServer =
 			{
 				res.type( 'application/json' );
 
-				soapClient.getAirportInformation(
+				soapClient.airport.getAirportInformation(
 					req.params.iata,
 					function ( data )
 					{
 						res.send( data );
+					}
+				);
+			}
+		);
+
+		app.get(
+			"/airport/currency/:iata",
+			function ( req, res )
+			{
+				res.type( 'application/json' );
+
+				soapClient.airport.getAirportInformation(
+					req.params.iata,
+					function ( airportData )
+					{
+						var data = {};
+						data.airport = airportData;
+
+						console.log( "got airport data" );
+						console.log( "Now querying currency for " + data.airport.NewDataSet.Table[ 0 ].Country );
+
+						soapClient.country.getCurrencyByCountry(
+							data.airport.NewDataSet.Table[ 0 ].Country,
+							function ( currencyData )
+							{
+								data.currency = currencyData;
+								res.send( data );
+							}
+						);
 					}
 				);
 			}
@@ -92,4 +184,4 @@ const startWebServer =
 	};
 
 
-createSoapClient( startWebServer );
+createClients( startWebServer );
