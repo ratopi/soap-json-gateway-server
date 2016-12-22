@@ -1,15 +1,22 @@
 const createClients =
 	function ( fn )
 	{
-		const xml2json = require( "xml2json" );
+		const xml2js = require( "xml2js" );
 		const soap = require( "soap" );
 
 		const interf = {};
 
 		const convertXmlToJsObject =
-			function ( xml )
+			function ( xml, fn )
 			{
-				return JSON.parse( xml2json.toJson( xml ) );
+				return xml2js.parseString(
+					xml,
+					function ( err, result )
+					{
+						if ( err ) throw err;
+						fn( result );
+					}
+				);
 			};
 
 		const checkIfInterfaceComplete =
@@ -29,8 +36,10 @@ const createClients =
 					function ( err, result )
 					{
 						if ( err ) throw err;
-						const data = convertXmlToJsObject( result[ resultAttribute ] );
-						fn( data );
+						convertXmlToJsObject(
+							result[ resultAttribute ],
+							fn
+						);
 					}
 				)
 			};

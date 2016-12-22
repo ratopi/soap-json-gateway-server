@@ -23,9 +23,9 @@ now you can start the server with
 
 Now call the URL
 
-    localhost:3000/airport/information/JFK
+    curl "localhost:3000/airport/information/JFK"
 
-in your favorite browser.
+with curl or just in your favorite browser.
 
 
 _Have fun_
